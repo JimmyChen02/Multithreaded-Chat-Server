@@ -42,7 +42,7 @@ public class ChatServer {
             }
         }
     }
-    logMessage("BROADCAST from " + senderUsername + ": " + message)
+    logMessage("BROADCAST from " + senderUsername + ": " + message);
 
     /*
      * private messaging 
@@ -78,9 +78,9 @@ public class ChatServer {
 
         StringBuilder userList = new StringBuilder("Connected Users (" + clients.size() + "): \n");
         for (String username: clients.keySet()) {
-            userList.append("  ~ ").append(username).append("\n";)
+            userList.append("  ~ ").append(username).append("\n");
         }
-        return userList.toString().trim()
+        return userList.toString().trim();
     }
     
 
@@ -239,7 +239,7 @@ class ClientHandler implements Runnable { // runnable has run()
                 sendMessage(ChatServer.getUserList());
                 break;
             case "/whisper":
-                if parts.length < 3 {
+                if (parts.length < 3) {
                     sendMessage("Usage: /whisper <username> <message>");
                 } else {
                     String targetUser = parts[1];

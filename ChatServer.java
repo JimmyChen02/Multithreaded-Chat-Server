@@ -11,7 +11,7 @@ public class ChatServer {
      */
     private static final int PORT = 12345; //port number for the server
     private static final String SERVER_NAME = "ChatServer";
-    private static final Map<String, ClientHandler> clients = new ConcurrentHashmap<>(); // map users to their client handlers
+    private static final Map<String, ClientHandler> clients = new ConcurrentHashMap<>(); // map users to their client handlers
     private static final Map<Socket, String> socketToUsername = new ConcurrentHashMap<>(); // map sockets to usernames
 
     public static void main(String[] args) {
@@ -41,8 +41,8 @@ public class ChatServer {
                 client.sendMessage(formattedMessage);
             }
         }
+        logMessage("BROADCAST from " + senderUsername + ": " + message);
     }
-    logMessage("BROADCAST from " + senderUsername + ": " + message);
 
     /*
      * private messaging 
@@ -62,10 +62,7 @@ public class ChatServer {
             logMessage("PRIVATE from " + fromUser + " to " + toUser + ": " + message);
             return true;
         }
-        else {
-            senderClient.sendMessage(toUser + " not found");
-            return false; //client not found
-        }
+        return false;
     }
 
     /*
@@ -165,8 +162,8 @@ class ClientHandler implements Runnable { // runnable has run()
     public void run() {
         try {
             // set up in/output streams
-            input = new BufferedReader(new InputStreamReader(socket.getInputStreams()));  //socket.getinput... (returns raw bytes from client) ~> InuptStream... (converts bytes to chars) ~> Buffered... (read line by line)
-            output = new PrintWriter(socket.getOutputStreams(), true); // send text to client, true enables auto-flush
+            input = new BufferedReader(new InputStreamReader(socket.getInputStream()));  //socket.getinput... (returns raw bytes from client) ~> InuptStream... (converts bytes to chars) ~> Buffered... (read line by line)
+            output = new PrintWriter(socket.getOutputStream(), true); // send text to client, true enables auto-flush
             
             sendMessage("Welcome to " + ChatServer.class.getSimpleName() + "!");
             sendMessage("Please enter your username:");
@@ -227,8 +224,8 @@ class ClientHandler implements Runnable { // runnable has run()
      */
 
     private void handleCommand(String command) {
-        String[] parts = comamnd.split(" ", 3);
-        Stribg cmd = parts[0].toLowerCase();
+        String[] parts = command.split(" ", 3);
+        String cmd = parts[0].toLowerCase();
         
         switch (cmd) {
             case "/quit":
@@ -289,8 +286,8 @@ class ClientHandler implements Runnable { // runnable has run()
 
     private void disconnect() {
         try {
-            ChatServer.removeClient(username.socket);
-            if (socket != null && !socket.isClosed) {
+            ChatServer.removeClient(username, socket);
+            if (socket != null && !socket.isClosed()) {
                 socket.close();
             }
         } catch (IOException e) {

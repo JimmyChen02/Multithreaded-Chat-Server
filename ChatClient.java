@@ -12,8 +12,8 @@ public class ChatClient {
     private boolean isConnected = false;
 
     public static void main(String[] args) {
-        CharClient client = new ChatClient();
-        client.start()
+        ChatClient client = new ChatClient();
+        client.start();
     }
     public void start() {
         try {
@@ -29,7 +29,7 @@ public class ChatClient {
             System.out.println("Successfully connected to server!");
 
             // start msg reciever thread
-            Thread recieverThread = new Thread(new MessageReciever());
+            Thread recieverThread = new Thread(new MessageReceiver());
             recieverThread.setDaemon(true); // Dies when main thread (program) dies
             recieverThread.start();
 
@@ -72,7 +72,7 @@ public class ChatClient {
 
     /* disconnect from server */
 
-    private void disconnect() [
+    private void disconnect() {
         isConnected = false;
 
         try {
@@ -89,7 +89,7 @@ public class ChatClient {
         } catch (IOException e) {
             System.err.println("Error disconnecting: " + e.getMessage());
         }
-    ]
+    }
 
     /* 
      * MessageReceiver ~> Handles incoming messages from server in a separate thread
@@ -105,7 +105,7 @@ public class ChatClient {
             } catch (IOException e) {
                 if (isConnected) {
                     System.err.println("Connection to server lost: " + e.getMessage());
-                    isConnected = false
+                    isConnected = false;
                 }
             }
         }

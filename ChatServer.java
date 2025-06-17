@@ -252,7 +252,7 @@ class ClientHandler implements Runnable { // runnable has run()
                 break;
             case "/nick":
                 if (parts.length < 2) {
-                    sendMessage("❌ Usage: /nick <new_username>");
+                    sendMessage("Usage: /nick <new_username>");
                 } else {
                     String newUsername = parts[1];
                     if (ChatServer.changeUsername(username, newUsername, this)) {

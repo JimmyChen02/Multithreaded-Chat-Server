@@ -82,11 +82,14 @@ public class ChatServer {
         }
         return userList.toString().trim()
     }
+    
 
     /*
      * client management methods
      */
 
+
+    // add new client to server
     public static synchronized boolean addClient(String username, ClientHandler clientHandler) { //sync to handle multiple user registration at same time, handles one at a time
         if (clients.containsKey(username)) { 
             return false; //username already taken
@@ -97,7 +100,210 @@ public class ChatServer {
         logMessage("User " + username + " joined the chat");
         return true;
     }
+
+    /**
+     * Remove a client from the server
+     */
+    public static synchronized void removeClient(String username, Socket socket) {
+        clients.remove(username);
+        socketToUsername.remove(socket);
+        
+        if (username != null) {
+            broadcastMessage( username + " left the chat.", SERVER_NAME);
+            logMessage("User " + username + " disconnected");
+        }
+    }
+
+    /**
+     * Change a user's username
+     */
+    public static synchronized boolean changeUsername(String oldUsername, String newUsername, ClientHandler clientHandler) {
+        if (clients.containsKey(newUsername)) {
+            return false; // New username already taken
+        }
+        
+        clients.remove(oldUsername);
+        clients.put(newUsername, clientHandler);
+        socketToUsername.put(clientHandler.getSocket(), newUsername);
+        
+        broadcastMessage( oldUsername + " is now known as " + newUsername, SERVER_NAME);
+        logMessage("User " + oldUsername + " changed name to " + newUsername);
+        
+        return true;
+    }
+
+    /**
+     * Get current timestamp
+     */
+    private static String getCurrentTime() {
+        return LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+    }
+    
+    /**
+     * Log server messages with timestamp
+     */
+    public static void logMessage(String message) {
+        System.out.println("[" + getCurrentTime() + "] " + message);
+    }
 }
 
+/*
+ * ClientHandler class runs own thread for each connected client
+ */
+
+class ClientHandler implements Runnable { // runnable has run()
+    private Socket socket; 
+    private BufferedReader input; //from client
+    private PrintWriter output; // to client
+    private String username;
+
+    public ClientHandler(Socket socket) {
+            this.socket = socket;
+        }
+
+    @Override
+    public void run() {
+        try {
+            // set up in/output streams
+            input = new BufferedReader(new InputStreamReader(socket.getInputStreams()));  //socket.getinput... (returns raw bytes from client) ~> InuptStream... (converts bytes to chars) ~> Buffered... (read line by line)
+            output = new PrintWriter(socket.getOutputStreams(), true); // send text to client, true enables auto-flush
+            
+            sendMessage("Welcome to " + ChatServer.class.getSimpleName() + "!");
+            sendMessage("Please enter your username:");
+
+            // get username from client
+            while (true) {
+                String inputUsername = input.readLine();
+                if (inputUsername == null) {
+                    return; //client dc-ed
+                }
+                inputUsername = inputUsername.trim();
+                if (inputUsername.isEmpty()) {
+                    sendMessage("Username cannot be empty, please try again:");
+                    continue;
+                }
+                if (ChatServer.addClient(inputUsername, this)) {
+                    this.username = inputUsername;
+                    sendMessage("Welcome, " + username + "! You're now connected to the chat.");
+                    sendMessage("Commands: /list (users), /whisper <user> <msg> (private), /nick <name> (change name), /quit (exit)");
+                    sendMessage("Start chatting! Your messages will be broadcasted to everyone!");
+                    break;
+                } else {
+                    sendMessage("Username '" + inputUsername + "' is already taken. Please choose another:");
+            }
+        }
+        // Main message loop
+            String message;
+            while ((message = input.readLine()) != null) {
+                handleMessage(message.trim());
+            }
+    } catch (IOException e) {
+            ChatServer.logMessage("Error handling client " + username + ": " + e.getMessage());
+    } finally {
+            disconnect();
+        }
+    }
 
 
+    /**
+     * Handle incoming messages and commands
+     */
+    private void handleMessage(String message) {
+        if (message.isEmpty()) {
+            return;
+        }
+
+        // Handle commands
+        if (message.startsWith("/")) {
+            handleCommand(message);
+        } else {
+            // Regular chat message - broadcast to everyone
+            ChatServer.broadcastMessage(username + ": " + message, username);
+        }
+    }
+
+    /**
+     * Handle chat commands
+     */
+
+    private void handleCommand(String command) {
+        String[] parts = comamnd.split(" ", 3);
+        Stribg cmd = parts[0].toLowerCase();
+        
+        switch (cmd) {
+            case "/quit":
+                sendMessage("Goodbye, " + username + " :(");
+                disconnect();
+                break;
+            case "/list":
+                sendMessage(ChatServer.getUserList());
+                break;
+            case "/whisper":
+                if parts.length < 3 {
+                    sendMessage("Usage: /whisper <username> <message>");
+                } else {
+                    String targetUser = parts[1];
+                    String privateMessage = parts[2];
+
+                    if (!ChatServer.sendPrivateMessage(username, targetUser, privateMessage)) {
+                        sendMessage("User '" + targetUser + "' is not found.");
+                    }
+                }
+                break;
+            case "/nick":
+                if (parts.length < 2) {
+                    sendMessage("❌ Usage: /nick <new_username>");
+                } else {
+                    String newUsername = parts[1];
+                    if (ChatServer.changeUsername(username, newUsername, this)) {
+                        sendMessage("Your username has been changed to: " + newUsername);
+                        this.username = newUsername;
+                    } else {
+                        sendMessage("Username '" + newUsername + "' is already taken.");
+                    }
+                }
+                break;
+            case "/help":
+                sendMessage("Available Commands:");
+                sendMessage("  /list - Show connected users");
+                sendMessage("  /whisper <user> <msg> - Send private message");
+                sendMessage("  /nick <name> - Change your username");
+                sendMessage("  /quit - Leave the chat");
+                sendMessage("  /help - Show this help message");
+                break;
+                    
+            default:
+                sendMessage("Unknown command: " + cmd + ". Type /help for available commands.");
+        }
+    }
+
+    /* Send a message to this client */
+
+    public void sendMessage(String message) {
+        if (output != null) {
+            output.println(message);
+        }
+    }
+
+    /* disconnect client */
+
+    private void disconnect() {
+        try {
+            ChatServer.removeClient(username.socket);
+            if (socket != null && !socket.isClosed) {
+                socket.close();
+            }
+        } catch (IOException e) {
+            ChatServer.logMessage("err0r closing socket for " + username + ": " + e.getMessage());
+        }
+    }
+
+    // Getters
+    public String getUsername() {
+        return username;
+    }
+
+    public Socket getSocket() {
+        return socket;
+    }
+}

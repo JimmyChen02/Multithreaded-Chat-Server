@@ -117,7 +117,7 @@ public class ChatServer {
         }
     }
 
-    /**
+    /*
      * Change a user's username
      */
     public static synchronized boolean changeUsername(String oldUsername, String newUsername, ClientHandler clientHandler) {
@@ -135,14 +135,14 @@ public class ChatServer {
         return true;
     }
 
-    /**
+    /*
      * Get current timestamp
      */
     private static String getCurrentTime() {
         return LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
     }
     
-    /**
+    /*
      * Log server messages with timestamp
      */
     public static void logMessage(String message) {
@@ -210,7 +210,7 @@ class ClientHandler implements Runnable { // runnable has run()
     }
 
 
-    /**
+    /*
      * Handle incoming messages and commands
      */
     private void handleMessage(String message) {
@@ -227,7 +227,7 @@ class ClientHandler implements Runnable { // runnable has run()
         }
     }
 
-    /**
+    /*
      * Handle chat commands
      */
 

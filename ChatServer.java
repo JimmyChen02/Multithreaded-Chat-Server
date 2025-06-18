@@ -36,8 +36,10 @@ public class ChatServer {
 
     public static void broadcastMessage(String message, String senderUsername) {
         String formattedMessage = "[" + getCurrentTime() + "] " + message;
-        for (ClientHandler client: clients.values()) { //loop through all connected clients
-            if (!client.getUsername().equals(senderUsername)) { //skip the sender, send to everyone else
+        for (ClientHandler client : clients.values()) { // loop through all connected clients
+            // Check for null username before calling equals
+            String clientUsername = client.getUsername();
+            if (clientUsername != null && !clientUsername.equals(senderUsername)) { // skip the sender, send to everyone else
                 client.sendMessage(formattedMessage);
             }
         }
@@ -102,12 +104,16 @@ public class ChatServer {
      * Remove a client from the server
      */
     public static synchronized void removeClient(String username, Socket socket) {
-        clients.remove(username);
-        socketToUsername.remove(socket);
-        
+        // Only remove from clients map if username is not null
         if (username != null) {
-            broadcastMessage( username + " left the chat.", SERVER_NAME);
+            clients.remove(username);
+            broadcastMessage(username + " left the chat.", SERVER_NAME);
             logMessage("User " + username + " disconnected");
+        }
+        
+        // Always try to remove the socket mapping
+        if (socket != null) {
+            socketToUsername.remove(socket);
         }
     }
 
@@ -153,6 +159,8 @@ class ClientHandler implements Runnable { // runnable has run()
     private BufferedReader input; //from client
     private PrintWriter output; // to client
     private String username;
+    private volatile boolean shouldQuit = false;
+
 
     public ClientHandler(Socket socket) {
             this.socket = socket;
@@ -191,7 +199,7 @@ class ClientHandler implements Runnable { // runnable has run()
         }
         // Main message loop
             String message;
-            while ((message = input.readLine()) != null) {
+            while (!shouldQuit && (message = input.readLine()) != null) {
                 handleMessage(message.trim());
             }
     } catch (IOException e) {
@@ -230,7 +238,7 @@ class ClientHandler implements Runnable { // runnable has run()
         switch (cmd) {
             case "/quit":
                 sendMessage("Goodbye, " + username + " :(");
-                disconnect();
+                shouldQuit = true;
                 break;
             case "/list":
                 sendMessage(ChatServer.getUserList());
@@ -285,13 +293,25 @@ class ClientHandler implements Runnable { // runnable has run()
     /* disconnect client */
 
     private void disconnect() {
-        try {
-            ChatServer.removeClient(username, socket);
-            if (socket != null && !socket.isClosed()) {
-                socket.close();
-            }
+       try {
+        // Remove client from server maps
+        ChatServer.removeClient(username, socket);
+        
+        // Close streams
+        if (input != null) {
+            input.close();
+        }
+        if (output != null) {
+            output.close();
+        }
+        
+        // Close socket
+        if (socket != null && !socket.isClosed()) {
+            socket.close();
+        }
         } catch (IOException e) {
-            ChatServer.logMessage("err0r closing socket for " + username + ": " + e.getMessage());
+            String userInfo = (username != null) ? username : "unknown user";
+            ChatServer.logMessage("Error closing socket for " + userInfo + ": " + e.getMessage());
         }
     }
 

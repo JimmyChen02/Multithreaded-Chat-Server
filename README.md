@@ -1,4 +1,4 @@
-# 🧵 Multithreaded Chat Server in Java
+# Multithreaded Chat Server in Java
 
 A terminal-based, real-time chat application built using Java Sockets and multithreading. Supports private messaging, command handling, and multiple concurrent users with thread-safe design.
 
@@ -6,14 +6,14 @@ A terminal-based, real-time chat application built using Java Sockets and multit
 
 ---
 
-## 📽️ Demo
+## Demo
 
 [Watch the demo video](https://youtu.be/CGI9tOv7lh8)
 
 
 ---
 
-## ✨ Features
+## Features
 
 ### Core 
 
@@ -45,7 +45,7 @@ A terminal-based, real-time chat application built using Java Sockets and multit
 
 ---
 
-## 🛠️ How to Use
+## How to Use
 
 ### 1. Clone the Repository
 
@@ -72,13 +72,13 @@ java ChatServer
 java ChatClient
 ```
 
-💡 **Tip**: Use multiple terminal windows to simulate different users.
+**Tip**: Use multiple terminal windows to simulate different users.
 
 ---
 
-## 🌐 Use Over LAN or Internet
+## Use Over LAN or Internet
 
-### 🖥️ On the Server Machine
+### On the Server Machine
 
 1. Run `ChatServer.java`
 2. Allow port 12345 through firewall
@@ -103,7 +103,7 @@ java ChatClient
 
 ---
 
-## 🧠 Code Architecture
+## Code Architecture
 
 ### Thread Architecture Visualization
 
@@ -165,7 +165,7 @@ Other clients see "Alice left the chat"
 
 ---
 
-## 🔮 Future Ideas
+## Future Ideas
 
 - **Chat rooms** and channel-based messaging
 - **GUI client** (Swing or JavaFX)
@@ -175,7 +175,7 @@ Other clients see "Alice left the chat"
 
 ---
 
-## 📂 File Overview
+## File Overview
 
 | File | Description |
 |------|-------------|
@@ -186,8 +186,8 @@ Other clients see "Alice left the chat"
 ---
 
 
-## 🙋‍♂️ Author
+## Author
 
 **Jimmy Chen**  
-📧 jc3673@cornell.edu  
-💼 [LinkedIn](https://www.linkedin.com/in/jimmychen02/)  
+jc3673@cornell.edu  
+[LinkedIn](https://www.linkedin.com/in/jimmychen02/)  

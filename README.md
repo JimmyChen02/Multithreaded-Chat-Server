@@ -84,7 +84,7 @@ java ChatClient
 2. Allow port 12345 through firewall
 3. Set up port forwarding on your router to your local IP
 
-### 💻 On the Client Machine
+### On the Client Machine
 
 1. Edit in `ChatClient.java`:
 

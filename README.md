@@ -110,10 +110,10 @@ java ChatClient
 ```
 SERVER PROCESS:
 Main Thread: ServerSocket.accept() → Creates ClientHandler → Starts new thread
-    ├── ClientHandler Thread (Alice)   ┐
-    ├── ClientHandler Thread (Bob)     ├─ Each handles one client
-    ├── ClientHandler Thread (Charlie) ┘
-    └── (More threads as clients connect)
+    |-- ClientHandler Thread (Alice)   ]
+    |-- ClientHandler Thread (Bob)     ]- Each handles one client
+    |-- ClientHandler Thread (Charlie) ]
+    |-- (More threads as clients connect)
 
 CLIENT PROCESS (Alice):
 Main Thread: Handles keyboard input → Sends to server
@@ -162,26 +162,6 @@ Other clients see "Alice left the chat"
 
 4. **Alice doesn't see her own message back** (prevents echo)
 
-
----
-
-## Future Ideas
-
-- **Chat rooms** and channel-based messaging
-- **GUI client** (Swing or JavaFX)
-- **TLS encryption** using SSLSocket
-- **Message history** with file or DB persistence
-- **Unit tests** for server logic and protocol
-
----
-
-## File Overview
-
-| File | Description |
-|------|-------------|
-| `ChatServer.java` | Multithreaded server that handles clients |
-| `ChatClient.java` | Terminal-based client that connects to server |
-| `ClientHandler` | Manages one connected user (runs in a thread) |
 
 ---
 
